@@ -1,0 +1,188 @@
+/* HERO: flight-instrument glass. One phosphor accent shared with the HUD; Mars stays the colour of the screen. */
+.mars-ui{
+  --glass:rgba(9,12,15,.58); --glass-strong:rgba(9,12,15,.82); --ink:#ede8e0; --muted:#9ba4a8; --faint:#6d777c;
+  --line:rgba(237,232,224,.13); --line-strong:rgba(237,232,224,.26); --accent:#9ff5c8; --accent-dim:rgba(159,245,200,.14);
+  --alert:#ff6b4a; --alert-dim:rgba(255,107,74,.16); --radius:4px; --ease:cubic-bezier(.2,.7,.2,1);
+  --mono:'IBM Plex Mono',ui-monospace,monospace; --display:'Barlow Condensed','IBM Plex Sans',sans-serif;
+  color:var(--ink); background:#050709;
+}
+.mars-ui .sr-only{position:absolute;width:1px;height:1px;overflow:hidden;clip:rect(0 0 0 0)}
+
+/* ---- Controls ---- */
+.mars-ui button,.mars-ui select,.mars-ui .header-actions>a{
+  font:500 11px/1 var(--mono); letter-spacing:.04em; text-transform:none; color:var(--ink);
+  background:rgba(237,232,224,.04); border:1px solid var(--line); border-radius:var(--radius);
+  padding:0 11px; height:30px; display:inline-flex; align-items:center; gap:7px; cursor:pointer;
+  transition:background .16s var(--ease),border-color .16s var(--ease),color .16s var(--ease);
+}
+.mars-ui button:hover,.mars-ui select:hover,.mars-ui .header-actions>a:hover{background:rgba(237,232,224,.09);border-color:var(--line-strong);color:var(--ink)}
+.mars-ui button.active{color:var(--accent);border-color:rgba(159,245,200,.45);background:var(--accent-dim)}
+.mars-ui button.hot{color:#ffd0c4;border-color:rgba(255,107,74,.55);background:var(--alert-dim)}
+.mars-ui button.primary{background:var(--ink);color:#0b0d0f;border-color:var(--ink);font-weight:600}
+.mars-ui button.primary:hover{background:#fff;color:#0b0d0f}
+.mars-ui button.ghost{background:transparent;border-color:transparent;color:var(--muted);height:24px;padding:0 6px}
+.mars-ui button.ghost:hover{color:var(--ink);background:rgba(237,232,224,.06)}
+.mars-ui :is(button,select,a,input):focus-visible{outline:2px solid var(--accent);outline-offset:2px}
+.mars-ui kbd{font:600 9px/1 var(--mono);color:var(--muted);border:1px solid var(--line-strong);border-bottom-width:2px;border-radius:3px;padding:3px 4px 2px;margin:0 2px;background:rgba(0,0,0,.2)}
+.mars-ui button.active kbd{color:var(--accent);border-color:rgba(159,245,200,.4)}
+#tooltip{position:fixed;z-index:30;max-width:230px;padding:7px 9px;background:rgba(237,232,224,.96);color:#101417;border:1px solid rgba(255,255,255,.5);border-radius:3px;font:500 10.5px/1.35 var(--mono);letter-spacing:.01em;pointer-events:none;opacity:0;transform:translateY(3px);transition:opacity .14s ease-out,transform .14s ease-out;box-shadow:0 8px 24px rgba(0,0,0,.36)}
+#tooltip.visible{opacity:1;transform:translateY(0)}
+.mars-ui select{appearance:none;-webkit-appearance:none;padding-right:26px;min-width:0;
+  background:rgba(237,232,224,.04) url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='10' height='6'%3E%3Cpath d='M1 1l4 4 4-4' fill='none' stroke='%239ba4a8' stroke-width='1.4'/%3E%3C/svg%3E") no-repeat right 9px center}
+.mars-ui select option,.mars-ui select optgroup{background:#12171b;color:var(--ink)}
+.mars-ui input[type=range]{-webkit-appearance:none;appearance:none;width:100%;height:18px;background:transparent;margin:8px 0 6px;accent-color:var(--accent)}
+.mars-ui input[type=range]::-webkit-slider-runnable-track{height:4px;border-radius:2px;background:linear-gradient(90deg,var(--accent) var(--fill,0%),rgba(237,232,224,.14) var(--fill,0%))}
+.mars-ui input[type=range]::-webkit-slider-thumb{-webkit-appearance:none;width:14px;height:14px;margin-top:-5px;border-radius:50%;background:var(--ink);border:2px solid #0b0d0f;box-shadow:0 0 0 1px var(--line-strong)}
+.mars-ui input[type=range]::-moz-range-track{height:4px;border-radius:2px;background:rgba(237,232,224,.14)}
+.mars-ui input[type=range]::-moz-range-progress{height:4px;border-radius:2px;background:var(--accent)}
+.mars-ui input[type=range]::-moz-range-thumb{width:12px;height:12px;border-radius:50%;background:var(--ink);border:2px solid #0b0d0f}
+
+/* ---- Surfaces ---- */
+.mars-ui .card,.mars-ui footer.dock,.mars-ui header{
+  background:var(--glass); border:1px solid var(--line); border-radius:6px;
+  -webkit-backdrop-filter:blur(14px) saturate(120%); backdrop-filter:blur(14px) saturate(120%);
+  box-shadow:0 10px 30px rgba(0,0,0,.28);
+}
+.mars-ui .card-head{display:flex;align-items:center;justify-content:space-between;gap:10px;margin-bottom:10px}
+.mars-ui .eyebrow{font:600 9.5px/1 var(--mono);letter-spacing:.14em;text-transform:uppercase;color:var(--muted)}
+.mars-ui .state{font:500 10.5px/1.2 var(--mono);color:var(--accent);text-align:right}
+.mars-ui .divider{height:1px;background:var(--line);margin:14px -14px}
+.mars-ui .button-pair{display:grid;grid-template-columns:1fr 1fr;gap:6px;margin-top:10px}
+.mars-ui .button-pair button{justify-content:center}
+
+/* ---- Header ---- */
+.mars-ui header{top:12px;left:16px;right:16px;padding:8px 10px 8px 14px;border-radius:6px;min-height:52px}
+.mars-ui .brand{display:flex;flex-direction:column;gap:5px;text-decoration:none}
+.mars-ui #wordmark{height:20px;width:auto;display:block}
+.mars-ui .brand i{font:500 9px/1 var(--mono);letter-spacing:.16em;color:var(--muted);margin:0;font-style:normal}
+.mars-ui .header-actions{gap:6px;align-items:center}
+.mars-ui .header-actions>a{text-decoration:none;color:var(--muted)}
+
+/* ---- Camera strip ---- */
+.mars-ui .view-tabs{top:78px;left:16px;gap:0;padding:3px;border:1px solid var(--line);border-radius:6px;background:var(--glass);-webkit-backdrop-filter:blur(14px);backdrop-filter:blur(14px);max-width:calc(100vw - 32px)}
+.mars-ui .view-tabs button{height:24px;padding:0 9px;font-size:10px;letter-spacing:.06em;border-color:transparent;background:transparent;color:var(--muted)}
+.mars-ui .view-tabs button:hover{color:var(--ink)}
+.mars-ui .view-tabs button.active{color:#0b0d0f;background:var(--accent);border-color:var(--accent)}
+
+/* ---- Mission card ---- */
+.mars-ui .mission{top:118px;left:16px;width:320px;padding:12px 14px;pointer-events:auto}
+.mars-ui .scenario-row{display:grid;grid-template-columns:1fr auto;gap:6px;margin:0}
+.mars-ui .scenario-row select{width:100%}
+.mars-ui #rotation-readout{font:500 10px var(--mono);color:var(--faint);margin:9px 0 0}
+
+/* ---- Telemetry ---- */
+.mars-ui .telemetry{top:78px;right:16px;width:250px;padding:12px 14px;border-top:1px solid var(--line);max-height:calc(100vh - 290px);overflow-y:auto;scrollbar-width:thin;scrollbar-color:var(--line-strong) transparent}
+.mars-ui .primary-value{margin-top:2px;gap:7px}
+.mars-ui .primary-value strong{font:500 46px/.9 var(--display);letter-spacing:.01em;color:var(--ink);font-variant-numeric:tabular-nums}
+.mars-ui .primary-value span{font:500 12px var(--mono);color:var(--muted)}
+.mars-ui .measure-label{font:600 9.5px var(--mono);letter-spacing:.12em;color:var(--accent);margin:6px 0 12px;text-transform:uppercase}
+.mars-ui .metric{margin:0;padding:6px 0;border-top:1px solid rgba(237,232,224,.06)}
+.mars-ui .metric span{font:500 10px var(--mono);letter-spacing:.06em;color:var(--muted)}
+.mars-ui .metric b{font:500 12.5px var(--mono);font-variant-numeric:tabular-nums;color:var(--ink)}
+.mars-ui .target-label{display:grid;gap:8px}
+.mars-ui .target-label select{width:100%}
+.mars-ui .telemetry p{font:500 11px/1.5 var(--mono);margin:8px 0 0;color:var(--ink)}
+.mars-ui #target-note{color:var(--muted);font-family:'IBM Plex Sans',sans-serif;font-size:12px;line-height:1.4}
+.mars-ui #orbit-readout{color:var(--accent)}
+.mars-ui #orbit-readout:empty,.mars-ui #target-note:empty{display:none}
+.mars-ui #guidance-state{font-size:10px;letter-spacing:.1em;color:var(--accent);text-transform:uppercase}
+
+/* ---- Map ---- */
+.mars-ui .nav-panel{left:16px;bottom:120px;width:300px;padding:10px 12px 8px;border-radius:6px}
+.mars-ui .nav-panel .card-head{margin-bottom:6px}
+.mars-ui #map{border-radius:3px}
+.mars-ui .map-foot{border:0;padding:6px 0 0;font:500 10px var(--mono);letter-spacing:.04em;color:var(--muted)}
+
+/* ---- Clock ---- */
+.mars-ui .clock-panel{right:16px;bottom:120px;width:250px;padding:10px 12px;text-align:left}
+.mars-ui .clock-panel .card-head{margin-bottom:4px}
+.mars-ui .clock-panel>b{font:500 30px/1 var(--display);letter-spacing:.06em;margin:2px 0 8px;font-variant-numeric:tabular-nums;color:var(--ink)}
+.mars-ui .time-controls{display:grid;grid-template-columns:repeat(6,1fr);gap:0;margin:0;border:1px solid var(--line);border-radius:var(--radius);overflow:hidden}
+.mars-ui .time-controls button{height:26px;padding:0;justify-content:center;border:0;border-radius:0;border-right:1px solid var(--line);font-size:10px;background:transparent;color:var(--muted)}
+.mars-ui .time-controls button:last-child{border-right:0}
+.mars-ui .time-controls button.active{background:var(--accent-dim);color:var(--accent)}
+
+/* ---- Control dock ---- */
+.mars-ui footer.dock{left:16px;right:16px;bottom:12px;min-height:0;padding:10px 12px;display:grid;grid-template-columns:230px 1fr auto;gap:18px;align-items:center}
+.mars-ui .dock-group.drive{min-width:0}
+.mars-ui .dock-label{display:flex;justify-content:space-between;align-items:baseline}
+.mars-ui .dock-label b{font:500 20px/1 var(--display);color:var(--accent);font-variant-numeric:tabular-nums}
+.mars-ui .dock-hint{display:flex;align-items:center;gap:3px;font:500 9.5px var(--mono);color:var(--faint);white-space:nowrap}
+.mars-ui .dock-hint button{margin-left:auto}
+.mars-ui .dock-group.toggles{display:flex;flex-wrap:wrap;gap:6px;justify-content:center}
+.mars-ui .toggle{position:relative;padding-left:9px}
+.mars-ui .toggle::after{content:"";width:6px;height:6px;border-radius:50%;background:rgba(237,232,224,.18);margin-left:2px;transition:background .16s var(--ease),box-shadow .16s var(--ease)}
+.mars-ui .toggle.active::after{background:var(--accent);box-shadow:0 0 8px var(--accent)}
+.mars-ui .toggle.hot::after{background:var(--alert);box-shadow:0 0 8px var(--alert)}
+.mars-ui .dock-group.keys{display:grid;gap:6px;font:500 9.5px var(--mono);color:var(--faint);white-space:nowrap;text-align:right}
+
+/* ---- Overlays ---- */
+.mars-ui #warning{top:auto;bottom:132px;font:600 11px var(--mono);letter-spacing:.1em;color:#ffd0c4;background:var(--alert-dim);border:1px solid rgba(255,107,74,.45);border-radius:var(--radius);-webkit-backdrop-filter:blur(10px);backdrop-filter:blur(10px)}
+.mars-ui .body-label{font:500 10px var(--mono);letter-spacing:.1em;color:var(--ink);text-shadow:0 1px 3px #000,0 0 10px rgba(0,0,0,.6)}
+.mars-ui .body-label span{color:var(--muted);font-size:11px}
+.mars-ui .body-label.landmark{opacity:.82;font-size:9.5px;letter-spacing:.035em;background:rgba(5,7,9,.46);border:1px solid rgba(237,232,224,.08);border-radius:2px;padding:3px 5px;-webkit-backdrop-filter:blur(3px);backdrop-filter:blur(3px)}
+.mars-ui .body-label.kind-site span,.mars-ui .body-label.kind-crash span{color:#ffd28e}
+.mars-ui .body-label.selected{opacity:1;color:var(--accent)}
+.mars-ui .body-label.selected span{color:var(--accent)}
+.flight-hud{position:fixed;inset:0;width:100vw;height:100vh;pointer-events:none;z-index:2}
+#stick{position:fixed;width:120px;height:120px;margin:-60px 0 0 -60px;border:1px solid rgba(159,245,200,.45);border-radius:50%;pointer-events:none;opacity:0;transition:opacity .15s;z-index:6}
+#stick.on{opacity:1}#stick i{position:absolute;left:50%;top:50%;width:14px;height:14px;margin:-7px;border-radius:50%;background:rgba(159,245,200,.85);box-shadow:0 0 10px #9ff5c8}
+.mars-ui #result{position:fixed;left:50%;top:40%;transform:translate(-50%,-50%);z-index:8;background:var(--glass-strong);border:1px solid var(--line-strong);border-radius:8px;padding:22px 24px 18px;width:min(440px,90vw);text-align:left;box-shadow:0 24px 70px rgba(0,0,0,.55);-webkit-backdrop-filter:blur(16px);backdrop-filter:blur(16px)}
+.mars-ui #result h2{font:600 34px/1 var(--display);letter-spacing:.04em;margin:0 0 10px;color:var(--ink)}
+.mars-ui #result p{font:400 14px/1.55 'IBM Plex Sans',sans-serif;color:#c8ccce;margin:0 0 6px}
+.mars-ui dialog{background:var(--glass-strong);color:#c8ccce;border:1px solid var(--line-strong);border-radius:8px;-webkit-backdrop-filter:blur(18px);backdrop-filter:blur(18px);padding:28px 32px}
+.mars-ui dialog h2{font:600 40px/1 var(--display);color:var(--ink);margin:6px 0 16px}
+.mars-ui dialog p{font:400 14px/1.65 'IBM Plex Sans',sans-serif}
+.mars-ui dialog b{color:var(--ink)}
+.mars-ui dialog a{color:var(--accent)}
+.mars-ui .reticle,.mars-ui .flight-marker{display:none}
+.mars-ui.flying .mission{opacity:.92}
+body.mars-ui.clean-view :is(header,.view-tabs,.mission,.telemetry,.nav-panel,.clock-panel,footer,.body-label,#warning){visibility:hidden}
+
+/* ---- Responsive ---- */
+@media (max-width:1180px){.mars-ui footer.dock{grid-template-columns:200px 1fr}.mars-ui .dock-group.keys{display:none}}
+@media (max-height:760px){.mars-ui .nav-panel{display:none}.mars-ui .telemetry{max-height:calc(100vh - 250px)}}
+@media (max-width:820px){
+  .mars-ui header{left:8px;right:8px;top:8px}.mars-ui .header-actions>a,.mars-ui #clean{display:none}.mars-ui #wordmark{height:15px}.mars-ui .brand i{display:none}.mars-ui .header-actions{overflow-x:auto}
+  .mars-ui .view-tabs{left:8px;top:70px;overflow-x:auto}
+  .mars-ui .mission{left:8px;top:106px;width:min(300px,calc(100vw - 16px))}
+  .mars-ui .telemetry{display:none}
+  .mars-ui .telemetry .divider,.mars-ui .telemetry .target-label,.mars-ui .telemetry p,.mars-ui .telemetry .button-pair{display:none}
+  .mars-ui .card-head .state{max-width:120px}
+  .mars-ui .primary-value strong{font-size:34px}
+  .mars-ui .nav-panel{display:none}
+  .mars-ui .clock-panel{right:auto;left:8px;bottom:196px;width:190px}
+  .mars-ui .dock-hint kbd:nth-of-type(-n+3),.mars-ui .dock-hint{font-size:9px}
+  .mars-ui footer.dock{left:8px;right:8px;bottom:8px;grid-template-columns:1fr;gap:10px}
+  .mars-ui .dock-group.toggles{justify-content:flex-start}
+}
+@media (prefers-reduced-motion:reduce){.mars-ui *{transition:none!important}}
+
+/* ---- Missions & weather ---- */
+.mars-ui .mission-row{margin-top:6px}
+.mars-ui .weather-row{display:flex;align-items:center;justify-content:space-between;gap:8px;margin-top:10px}
+.mars-ui .lighting-row{display:flex;align-items:center;justify-content:space-between;gap:12px;margin-top:9px;padding-top:9px;border-top:1px solid var(--line)}
+.mars-ui .lighting-row select{width:150px;min-height:34px;padding:6px 30px 6px 10px}
+.mars-ui .segmented{display:inline-grid;grid-auto-flow:column;border:1px solid var(--line);border-radius:var(--radius);overflow:hidden}
+.mars-ui .segmented button{height:24px;border:0;border-radius:0;border-right:1px solid var(--line);background:transparent;color:var(--muted);font-size:10px;padding:0 8px}
+.mars-ui .segmented button:last-child{border-right:0}
+.mars-ui .segmented button.active{background:var(--accent-dim);color:var(--accent)}
+.mars-ui .segmented button[data-weather="storm"].active{background:var(--alert-dim);color:#ffd0c4}
+.mars-ui #mission-panel{margin-top:10px;border-top:1px solid var(--line);padding-top:10px}
+.mars-ui #mission-brief{font:400 12.5px/1.45 'IBM Plex Sans',sans-serif;color:#c9cdcf;margin:0 0 8px}
+.mars-ui #objectives{margin:0;padding:0;list-style:none;display:grid;gap:5px;counter-reset:obj}
+.mars-ui #objectives li{counter-increment:obj;display:flex;gap:8px;align-items:center;font:500 11px var(--mono);color:var(--faint)}
+.mars-ui #objectives li::before{content:counter(obj);width:16px;height:16px;border-radius:50%;border:1px solid var(--line-strong);display:grid;place-items:center;font-size:9px;flex-shrink:0}
+.mars-ui #objectives li.current{color:var(--ink)}
+.mars-ui #objectives li.current::before{border-color:var(--accent);color:var(--accent);box-shadow:0 0 0 3px var(--accent-dim)}
+.mars-ui #objectives li.done{color:var(--accent);text-decoration:line-through;text-decoration-color:rgba(159,245,200,.4)}
+.mars-ui #objectives li.done::before{content:"✓";background:var(--accent);color:#0b0d0f;border-color:var(--accent)}
+.mars-ui #mission-clock{font:500 10px var(--mono);color:var(--muted);margin:8px 0 0}
+.mars-ui #result .medal{display:inline-block;width:22px;height:22px;border-radius:50%;margin-right:10px;vertical-align:-2px;box-shadow:inset 0 -3px 0 rgba(0,0,0,.25),0 0 14px currentColor}
+.mars-ui #result .medal.gold{background:#f2c14e;color:#f2c14e}.mars-ui #result .medal.silver{background:#c9d1d6;color:#c9d1d6}.mars-ui #result .medal.bronze{background:#c98a52;color:#c98a52}
+.mars-ui #result .score-part{display:grid;grid-template-columns:1fr auto 36px;gap:10px;font:500 12px var(--mono);padding:5px 0;border-top:1px solid var(--line)}
+.mars-ui #result .score-part b{font-weight:500;color:var(--muted)}.mars-ui #result .score-part i{font-style:normal;color:var(--accent);text-align:right}
+
+.glare{position:fixed;inset:0;width:100vw;height:100vh;pointer-events:none;z-index:1}
+body.mars-ui.clean-view .glare{visibility:visible}
+.mars-ui .perf{font:500 9.5px var(--mono);color:var(--faint);margin:-2px 0 4px;letter-spacing:.04em}

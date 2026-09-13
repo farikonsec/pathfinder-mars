@@ -1,0 +1,1 @@
+{"name":"pathfinder-mars","private":true,"version":"1.0.0","type":"module","scripts":{"dev":"vite","build":"tsc --noEmit && vite build","preview":"vite preview","test":"bun test","check":"bun test && bun run build"},"dependencies":{"three":"0.185.1"},"devDependencies":{"@types/three":"0.185.4","typescript":"5.9.3","vite":"8.3.0"}}
