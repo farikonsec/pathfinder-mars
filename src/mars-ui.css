@@ -225,14 +225,11 @@ body.mars-ui.compact #sheet .primary-value strong{font-size:38px}
 body.mars-ui.compact #touch-pad{position:fixed;inset:0;z-index:5;pointer-events:none}
 body.mars-ui.compact #touch-pad .pad-btn{pointer-events:auto;touch-action:none;height:52px;min-width:64px;justify-content:center;font:600 12px var(--mono);background:rgba(9,12,15,.62);-webkit-backdrop-filter:blur(10px);backdrop-filter:blur(10px);border:1px solid var(--line-strong);border-radius:12px}
 body.mars-ui.compact #touch-pad .pad-btn.active{color:var(--accent);border-color:var(--accent);background:rgba(20,40,32,.75)}
-body.mars-ui.compact .pad-left,body.mars-ui.compact .pad-right{position:absolute;display:flex;flex-direction:column;gap:8px}
-body.mars-ui.compact .pad-left{left:calc(10px + env(safe-area-inset-left));bottom:calc(88px + env(safe-area-inset-bottom))}
-body.mars-ui.compact .pad-right{right:calc(76px + env(safe-area-inset-right));bottom:calc(88px + env(safe-area-inset-bottom))}
 body.mars-ui.compact #touch-throttle{pointer-events:auto;touch-action:none;position:absolute;right:calc(10px + env(safe-area-inset-right));bottom:calc(88px + env(safe-area-inset-bottom));width:56px;height:min(42vh,260px);border-radius:14px;border:1px solid var(--line-strong);background:rgba(9,12,15,.62);-webkit-backdrop-filter:blur(10px);backdrop-filter:blur(10px);overflow:hidden;--level:0}
 body.mars-ui.compact #touch-throttle i{position:absolute;left:0;right:0;bottom:0;height:calc(var(--level) * 100%);background:linear-gradient(0deg,rgba(159,245,200,.55),rgba(159,245,200,.22));border-top:2px solid var(--accent)}
 body.mars-ui.compact #touch-throttle b{position:absolute;top:8px;left:0;right:0;text-align:center;font:600 13px var(--mono);color:var(--accent)}
 body.mars-ui.compact #touch-throttle span{position:absolute;bottom:8px;left:0;right:0;text-align:center;font:600 9px var(--mono);letter-spacing:.12em;color:var(--muted)}
-body.mars-ui.compact #stick-hint{position:absolute;left:50%;top:62%;transform:translateX(-50%);font:500 11px var(--mono);color:var(--ink);background:rgba(9,12,15,.55);padding:6px 10px;border-radius:14px;transition:opacity .6s;white-space:nowrap}
+body.mars-ui.compact #stick-hint{position:absolute;left:50%;top:44%;transform:translateX(-50%);font:500 11px var(--mono);color:var(--ink);background:rgba(9,12,15,.55);padding:6px 10px;border-radius:14px;transition:opacity .6s;white-space:nowrap}
 body.mars-ui.compact #stick-hint.used{opacity:0}
 
 /* Bottom row: the everyday toggles as chips. The dock itself is hidden, so reuse its buttons. */
@@ -250,9 +247,41 @@ body.mars-ui.compact.clean-view #touch-pad{visibility:hidden}
 /* Landscape phones: shorter throttle, pads tucked lower. */
 @media (max-height:520px){
   body.mars-ui.compact #touch-throttle{height:min(40vh,150px);bottom:calc(64px + env(safe-area-inset-bottom))}
-  body.mars-ui.compact .pad-left,body.mars-ui.compact .pad-right{bottom:calc(64px + env(safe-area-inset-bottom))}
   body.mars-ui.compact #touch-pad .pad-btn{height:44px}
   body.mars-ui.compact .chip-row button{height:40px}
   body.mars-ui.compact #sheet{max-height:88vh}
 }
 
+
+/* Thumb-stick, jets and utility buttons. Portrait: stick bottom-left, throttle bottom-right. */
+body.mars-ui.compact{--pad-bottom:calc(66px + env(safe-area-inset-bottom));--joy:136px}
+body.mars-ui.compact #joy{pointer-events:auto;touch-action:none;position:absolute;left:calc(12px + env(safe-area-inset-left));bottom:var(--pad-bottom);width:var(--joy);height:var(--joy);border-radius:50%;
+  background:radial-gradient(circle,rgba(9,12,15,.35) 0,rgba(9,12,15,.62) 70%);border:1px solid var(--line-strong);-webkit-backdrop-filter:blur(8px);backdrop-filter:blur(8px)}
+body.mars-ui.compact #joy .joy-cross{position:absolute;inset:18%;border-radius:50%;border:1px dashed rgba(237,232,224,.16)}
+body.mars-ui.compact #joy i{position:absolute;left:50%;top:50%;width:54px;height:54px;margin:-27px;border-radius:50%;background:radial-gradient(circle at 35% 30%,rgba(237,232,224,.9),rgba(159,245,200,.55));box-shadow:0 4px 14px rgba(0,0,0,.45);transition:transform .12s ease-out}
+body.mars-ui.compact #joy.on i{transition:none;background:radial-gradient(circle at 35% 30%,#fff,var(--accent))}
+body.mars-ui.compact #joy.tilting{border-color:var(--accent)}
+body.mars-ui.compact #joy.tilting i{transition:transform .08s linear}
+body.mars-ui.compact #joy em{position:absolute;left:0;right:0;top:-15px;text-align:center;font:600 8.5px var(--mono);font-style:normal;letter-spacing:.14em;color:var(--muted)}
+body.mars-ui.compact #joy.tilting em::after{content:' · TILT';color:var(--accent)}
+body.mars-ui.compact .pad-jets{position:absolute;display:flex;flex-direction:column;gap:8px;right:calc(76px + env(safe-area-inset-right));bottom:var(--pad-bottom)}
+body.mars-ui.compact .pad-util{position:absolute;display:flex;gap:6px;right:calc(10px + env(safe-area-inset-right));bottom:calc(var(--pad-bottom) + min(42vh,260px) + 10px)}
+body.mars-ui.compact .pad-util .pad-btn{height:42px!important;min-width:52px!important;padding:0 10px;font-size:11px!important}
+body.mars-ui.compact #touch-throttle{bottom:var(--pad-bottom)}
+#toast{position:fixed;left:50%;top:calc(env(safe-area-inset-top) + 64px);transform:translate(-50%,-6px);z-index:20;max-width:min(90vw,420px);padding:9px 12px;border-radius:10px;background:rgba(237,232,224,.95);color:#101417;font:500 12px/1.4 'IBM Plex Mono',ui-monospace,monospace;text-align:center;opacity:0;pointer-events:none;transition:opacity .2s,transform .2s}
+#toast.visible{opacity:1;transform:translate(-50%,0)}
+html,body{height:100%;overscroll-behavior:none}
+.flight-hud,.glare{height:100%!important}
+
+/* Narrow portrait: jets sit beside the throttle, utilities above it; keep the stick clear of them. */
+@media (max-width:360px){body.mars-ui.compact{--joy:118px}body.mars-ui.compact .pad-jets .pad-btn{min-width:56px}}
+
+/* Landscape phones: stick and throttle hug the lower corners, utilities go up the right edge. */
+@media (max-height:520px){
+  body.mars-ui.compact{--pad-bottom:calc(58px + env(safe-area-inset-bottom));--joy:124px}
+  body.mars-ui.compact #touch-throttle{height:min(40vh,140px)}
+  body.mars-ui.compact .pad-util{bottom:var(--pad-bottom);right:calc(146px + env(safe-area-inset-right));flex-direction:column}
+  body.mars-ui.compact .pad-util .pad-btn{height:36px!important}
+  body.mars-ui.compact .pad-jets .pad-btn{height:52px}
+  body.mars-ui.compact #stick-hint{top:62%}
+}

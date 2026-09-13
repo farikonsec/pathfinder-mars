@@ -48,10 +48,11 @@ document.querySelector('#app')!.innerHTML = `
 <div id="stick"><i></i></div><div id="tooltip" role="tooltip"></div><div id="warning"></div><div id="result" hidden><h2 id="result-title"></h2><p id="result-detail"></p><div class="button-pair"><button id="result-retry" class="primary">Fly again</button><button id="result-ground">Ground view</button></div></div>
 <div class="clock-panel card"><div class="card-head"><span class="eyebrow">Sim time</span><span id="rate-label" class="state"></span></div><div id="perf" class="perf"></div><b id="clock"></b><div class="time-controls">${[1, 10, 100, 1000, 10000].map(n => `<button data-rate="${n}">${n >= 1000 ? n / 1000 + 'k' : n}×</button>`).join('')}<button id="pause">Ⅱ</button></div></div>
 <div id="sheet" aria-label="Flight menu"><div class="sheet-grip"></div><div class="sheet-actions"></div></div>
-<div id="touch-pad" class="compact-only"><div class="pad-left"><button id="jets-up" class="pad-btn">Jets ▲</button><button id="jets-down" class="pad-btn">Jets ▼</button></div><div class="pad-right"><button id="cam-next" class="pad-btn">Cam</button><button id="pad-pause" class="pad-btn">Ⅱ</button></div><div id="touch-throttle" role="slider" aria-label="Main drive throttle" aria-valuemin="0" aria-valuemax="100"><i></i><b>0%</b><span>THR</span></div><div id="stick-hint">Drag anywhere to steer</div><div class="chip-row"></div></div>
+<div id="touch-pad" class="compact-only"><div id="joy" aria-label="Flight stick"><span class="joy-cross"></span><i></i><em>STICK</em></div><div class="pad-jets"><button id="jets-up" class="pad-btn">Jets ▲</button><button id="jets-down" class="pad-btn">Jets ▼</button></div><div class="pad-util"><button id="tilt" class="pad-btn toggle-lite">Tilt</button><button id="cam-next" class="pad-btn">Cam</button><button id="pad-pause" class="pad-btn">Ⅱ</button></div><div id="touch-throttle" role="slider" aria-label="Main drive throttle" aria-valuemin="0" aria-valuemax="100"><i></i><b>0%</b><span>THR</span></div><div id="stick-hint">Use the stick, drag the view, or tap Tilt</div><div class="chip-row"></div></div>
 <footer class="dock"><div class="dock-group drive"><div class="dock-label"><span class="eyebrow">Main drive</span><b id="burn">0%</b></div><input id="throttle" aria-label="Main engine throttle" type="range" min="0" max="100" value="0"><div class="dock-hint"><kbd>Shift</kbd><kbd>Ctrl</kbd> throttle <kbd>Z</kbd> full <button id="cut" class="ghost"><kbd>X</kbd>Cut</button></div></div><div class="dock-group toggles"><button id="torch" class="toggle"><kbd>M</kbd><span>Torch</span></button><button id="gear" class="toggle"><kbd>G</kbd><span>Gear</span></button><button id="descent" class="toggle"><kbd>V</kbd><span>Descent assist</span></button><button id="entry-hold" class="toggle"><kbd>B</kbd><span>Entry attitude</span></button><button id="handling" class="toggle"><kbd>T</kbd><span>Assisted</span></button><button id="prograde"><span>Prograde</span></button><button id="retrograde"><span>Retrograde</span></button></div><div class="dock-group keys"><span><kbd>W</kbd><kbd>S</kbd> pitch <kbd>A</kbd><kbd>D</kbd> roll <kbd>Q</kbd><kbd>E</kbd> yaw</span><span><kbd>R</kbd><kbd>F</kbd> jets <kbd>C</kbd> camera <kbd>Space</kbd> pause</span></div></footer>
 <dialog id="guide"><button id="close-guide" class="ghost close">Close</button><h2>Fly the spaceplane.</h2>
 <p><b>Stick.</b> W/S pitch (S pulls the nose up), A/D roll, Q/E yaw; arrow keys also pitch and roll. Or hold the left mouse button in the view and drag: the further from where you pressed, the harder the turn. Assisted handling holds attitude when you let go; T switches to Newtonian spin in space.</p>
+<p><b>On a phone.</b> Steer with the round stick at the bottom left, or drag anywhere on the view. Tap <b>Tilt</b> to steer by tilting the phone: the way you hold it when you tap becomes centre, tilt right to roll right, tilt the top toward you to raise the nose, and long-press Tilt to re-centre. Slide the THR bar for the main drive and hold Jets ▲ to hover. Menu holds starts, missions, cameras and weather. Portrait and landscape both work; landscape gives the widest view.</p>
 <p><b>In the air</b> the ship flies like an aircraft: it weathervanes into the airflow, wings make lift, and banking turns you. Mars air is 1% of Earth's, so you need speed or engines to stay up. <b>In space</b> pointing the nose does not change your path; thrust does.</p>
 <p><b>Engines.</b> Shift raises throttle, Ctrl lowers it, Z is full, X cuts. R/F fire the belly hover jets (0.85 g, enough to hover in Mars' 0.38 g). J/L slide sideways, I/K push forward and back.</p>
 <p><b>Landing.</b> G lowers the gear. Touch down upright with under 6 m/s vertical and 5 m/s horizontal. V engages descent assist: the jets hold your position over the ground, even in wind, and lower you gently while you steer the throttle. B holds a 40° belly-first entry attitude so the heat shield takes the plasma.</p>
@@ -76,6 +77,8 @@ let torch = false, mapMode: 'surface' | 'system' | 'auto' = 'auto', orbit: Orbit
 let gear = false, gearAnim = 0, descent = false, entryHold = false, autopilot = false, ended = false, endTimer = 0, invertPitch = false;
 const keys = new Set<string>();
 const stick = {active: false, ox: 0, oy: 0, x: 0, y: 0};
+/** Phone steering: a fixed thumb-stick and optional tilt, both in the same units as the drag stick (x right, y down). */
+const joy = {x: 0, y: 0}, tilt = {on: false, x: 0, y: 0, base: null as null | {b: number; g: number}, angle: 0};
 
 function destination(lat: number, lon: number, bearingDeg: number, distanceM: number) {
   const d = distanceM / (MARS.radius * 1000), b = bearingDeg * Math.PI / 180, a = lat * Math.PI / 180, l = lon * Math.PI / 180;
@@ -292,7 +295,7 @@ document.querySelectorAll<HTMLElement>('[data-camera]').forEach(b => b.onclick =
 document.querySelectorAll<HTMLElement>('[data-rate]').forEach(b => b.onclick = () => setRate(Number(b.dataset.rate)));
 
 const cameraTips = ['Pilot-eye view inside the cockpit.','Stable camera following behind the ship.','Slow camera orbit around the ship.','Look at the selected navigation target.','View the ship from ahead.','View the starboard side.','Look down on the ship from above.','Moving cinematic camera.','Close inspection view; drag to rotate.','Rover-height view from the surface.'];
-const tips: Record<string,string> = {sound:'Turn music and flight sounds on or off.',markings:'Cycle essential, full, and hidden flight marks.',labels:'Cycle smart, all, and hidden place labels.',clean:'Hide every interface panel.',stars:'Cycle normal, bright, and hidden stars.',help:'Open controls and flight notes.',reset:'Restart at the selected location.','mission-start':'Start the selected scored mission.','map-mode':'Switch between surface and Mars-system maps.',face:'Turn the nose toward the selected target.',rendezvous:'Toggle assisted moon rendezvous.',pause:'Pause or resume simulation time.',cut:'Set main-engine throttle to zero.',torch:'Toggle the 30 g vacuum drive; unsafe in atmosphere.',gear:'Raise or lower landing gear.',descent:'Manage hover jets for a stable descent.','entry-hold':'Hold a belly-first entry attitude.',handling:'Toggle stable fly-by-wire and free Newtonian rotation.',prograde:'Turn the nose along the current velocity.',retrograde:'Turn the nose opposite the current velocity.','result-retry':'Restart this flight or mission.','result-ground':'Inspect the landing or crash site from the ground.','close-guide':'Close the flight guide.',menu:'Open the flight menu.','jets-up':'Hold to fire the hover jets upward.','jets-down':'Hold to push down with the jets.','cam-next':'Switch to the next camera.','pad-pause':'Pause or resume.'};
+const tips: Record<string,string> = {sound:'Turn music and flight sounds on or off.',markings:'Cycle essential, full, and hidden flight marks.',labels:'Cycle smart, all, and hidden place labels.',clean:'Hide every interface panel.',stars:'Cycle normal, bright, and hidden stars.',help:'Open controls and flight notes.',reset:'Restart at the selected location.','mission-start':'Start the selected scored mission.','map-mode':'Switch between surface and Mars-system maps.',face:'Turn the nose toward the selected target.',rendezvous:'Toggle assisted moon rendezvous.',pause:'Pause or resume simulation time.',cut:'Set main-engine throttle to zero.',torch:'Toggle the 30 g vacuum drive; unsafe in atmosphere.',gear:'Raise or lower landing gear.',descent:'Manage hover jets for a stable descent.','entry-hold':'Hold a belly-first entry attitude.',handling:'Toggle stable fly-by-wire and free Newtonian rotation.',prograde:'Turn the nose along the current velocity.',retrograde:'Turn the nose opposite the current velocity.','result-retry':'Restart this flight or mission.','result-ground':'Inspect the landing or crash site from the ground.','close-guide':'Close the flight guide.',menu:'Open the flight menu.','jets-up':'Hold to fire the hover jets upward.','jets-down':'Hold to push down with the jets.','cam-next':'Switch to the next camera.','pad-pause':'Pause or resume.',tilt:'Steer by tilting the phone. Long-press to re-centre.'};
 document.querySelectorAll<HTMLButtonElement>('button').forEach(button => {button.dataset.tip = button.dataset.camera !== undefined ? cameraTips[Number(button.dataset.camera)] : button.dataset.rate ? `${button.dataset.rate} simulation seconds per real second.` : button.dataset.weather ? `Set ${button.textContent?.trim().toLowerCase()} Mars weather.` : tips[button.id] ?? `Use ${button.textContent?.trim()}.`;});
 const tooltip = $('tooltip');
 const showTip = (button: HTMLButtonElement) => {tooltip.textContent = button.dataset.tip ?? ''; tooltip.classList.add('visible'); const r = button.getBoundingClientRect(), w = tooltip.offsetWidth, h = tooltip.offsetHeight; tooltip.style.left = `${Math.max(8,Math.min(innerWidth-w-8,r.left+r.width/2-w/2))}px`; tooltip.style.top = `${r.top > h+14 ? r.top-h-9 : r.bottom+9}px`;};
@@ -314,6 +317,12 @@ addEventListener('pointerup', releasePointer); addEventListener('pointercancel',
 // Phones: panels move into a pull-up menu and touch controls replace the keyboard.
 const compactQuery = matchMedia('(max-width: 760px), (max-height: 520px)');
 const movable = ['.view-tabs', '.mission', '.telemetry', '.clock-panel'].map(q => document.querySelector(q) as HTMLElement);
+if (document.fullscreenEnabled) {
+  const fs = document.createElement('button'); fs.id = 'fullscreen'; fs.textContent = 'Full screen'; fs.dataset.tip = 'Hide the browser bars.';
+  fs.onclick = () => {document.fullscreenElement ? document.exitFullscreen() : document.documentElement.requestFullscreen({navigationUI: 'hide'}).catch(() => {});};
+  document.addEventListener('fullscreenchange', () => {fs.textContent = document.fullscreenElement ? 'Exit full screen' : 'Full screen'; for (const ms of [60, 300]) setTimeout(() => dispatchEvent(new Event('resize')), ms);});
+  $('sheet').querySelector('.sheet-actions')!.appendChild(fs);
+}
 const headerButtons = ['markings', 'labels', 'clean', 'stars', 'help'].map(id => $(id));
 const chipButtons = ['gear', 'descent', 'cut', 'torch', 'handling', 'entry-hold', 'prograde', 'retrograde'].map(id => $(id));
 function applyCompact() {
@@ -334,6 +343,76 @@ const closeSheet = () => {document.body.classList.remove('sheet-open'); $('menu'
 $('sheet').addEventListener('click', e => {if ((e.target as Element).closest('#reset,#mission-start,[data-camera],#help,#face,#rendezvous')) setTimeout(closeSheet, 0);});
 $('menu').onclick = () => {const open = document.body.classList.toggle('sheet-open'); $('menu').setAttribute('aria-expanded', String(open)); $('menu').textContent = open ? 'Close' : 'Menu';};
 $('cam-next').onclick = () => setCamera((view.mode + 1) % CAMERA_NAMES.length);
+{
+  // Fixed thumb-stick, same convention as dragging the view.
+  const pad = $('joy'), knob = pad.querySelector('i') as HTMLElement;
+  let id = -1;
+  const move = (e: PointerEvent) => {
+    const r = pad.getBoundingClientRect(), radius = r.width / 2 - 8;
+    let dx = (e.clientX - r.left - r.width / 2) / radius, dy = (e.clientY - r.top - r.height / 2) / radius;
+    const l = Math.hypot(dx, dy); if (l > 1) {dx /= l; dy /= l;}
+    // Small dead zone so a resting thumb does not drift the ship.
+    const dead = (v: number) => Math.abs(v) < .08 ? 0 : (v - Math.sign(v) * .08) / .92;
+    joy.x = dead(dx); joy.y = dead(dy);
+    knob.style.transform = `translate(${dx * radius}px,${dy * radius}px)`;
+  };
+  const end = (e: PointerEvent) => {if (e.pointerId !== id) return; id = -1; joy.x = joy.y = 0; knob.style.transform = ''; pad.classList.remove('on');};
+  pad.addEventListener('pointerdown', e => {e.preventDefault(); if (id !== -1) return; id = e.pointerId; try {pad.setPointerCapture(id);} catch {/* synthetic pointer */} pad.classList.add('on'); $('stick-hint').classList.add('used'); move(e);});
+  pad.addEventListener('pointermove', e => {if (e.pointerId === id) move(e);});
+  pad.addEventListener('pointerup', end); pad.addEventListener('pointercancel', end); pad.addEventListener('lostpointercapture', end);
+}
+{
+  // Tilt steering from the device orientation sensor. Works on iPhone (after permission) and Android.
+  const screenAngle = () => ((screen.orientation?.angle ?? (window as unknown as {orientation?: number}).orientation ?? 0) + 360) % 360;
+  const wrap = (a: number) => ((a + 540) % 360) - 180;
+  const onOrientation = (e: DeviceOrientationEvent) => {
+    if (!tilt.on || e.beta == null || e.gamma == null) return;
+    const angle = screenAngle();
+    if (!tilt.base || angle !== tilt.angle) {tilt.base = {b: e.beta, g: e.gamma}; tilt.angle = angle;}
+    const db = wrap(e.beta - tilt.base.b), dg = wrap(e.gamma - tilt.base.g);
+    // Map device axes onto the screen as the user is holding it.
+    let right = dg, back = db;
+    if (angle === 90) {right = db; back = -dg;} else if (angle === 270) {right = -db; back = dg;} else if (angle === 180) {right = -dg; back = -db;}
+    const shape = (deg: number) => {const v = T.MathUtils.clamp(deg / 28, -1, 1); return Math.abs(v) < .1 ? 0 : (v - Math.sign(v) * .1) / .9;};
+    // Tilt right rolls right; tilt the top of the phone toward you to pull the nose up.
+    // y follows the drag stick's screen convention (up = nose up), so pulling the top back reads as up.
+    tilt.x = shape(right); tilt.y = -shape(back);
+    const knob = $('joy').querySelector('i') as HTMLElement, r = $('joy').getBoundingClientRect().width / 2 - 8;
+    if (!$('joy').classList.contains('on')) knob.style.transform = `translate(${tilt.x * r}px,${tilt.y * r}px)`;
+  };
+  const setTilt = (on: boolean) => {
+    tilt.on = on; tilt.base = null; tilt.x = tilt.y = 0;
+    $('tilt').classList.toggle('active', on); $('tilt').textContent = on ? 'Tilt ●' : 'Tilt';
+    $('joy').classList.toggle('tilting', on);
+    if (on) $('stick-hint').classList.add('used');
+    if (!on) ($('joy').querySelector('i') as HTMLElement).style.transform = '';
+  };
+  addEventListener('deviceorientation', onOrientation);
+  $('tilt').onclick = async () => {
+    if (tilt.on) {setTilt(false); return;}
+    const request = (DeviceOrientationEvent as unknown as {requestPermission?: () => Promise<string>}).requestPermission;
+    if (request) {try {if (await request.call(DeviceOrientationEvent) !== 'granted') {showToast('Motion access was denied. Allow motion sensors for this site in your browser settings, then tap Tilt again.'); return;}} catch {showToast('Motion access needs a tap on Tilt to ask again.'); return;}}
+    if (!('DeviceOrientationEvent' in window)) {showToast('This device has no tilt sensor.'); return;}
+    setTilt(true); showToast('Hold the phone how you like, it is now centre. Tap Tilt again to stop.');
+  };
+  // A long press on Tilt re-centres without switching it off.
+  let pressTimer = 0;
+  $('tilt').addEventListener('pointerdown', () => {pressTimer = window.setTimeout(() => {if (tilt.on) {tilt.base = null; showToast('Tilt re-centred.');}}, 550);});
+  for (const t of ['pointerup', 'pointercancel', 'pointerleave']) $('tilt').addEventListener(t, () => clearTimeout(pressTimer));
+}
+function showToast(text: string) {
+  let t = document.getElementById('toast');
+  if (!t) {t = document.createElement('div'); t.id = 'toast'; document.body.appendChild(t);}
+  t.textContent = text; t.classList.add('visible');
+  clearTimeout(Number(t.dataset.timer)); t.dataset.timer = String(setTimeout(() => t!.classList.remove('visible'), 2600));
+}
+{
+  // Rotation: phones report the new size a moment after the turn, so resize again once it settles, and re-centre tilt.
+  const settle = () => {for (const ms of [60, 300, 700]) setTimeout(() => dispatchEvent(new Event('resize')), ms); tilt.base = null;};
+  screen.orientation?.addEventListener?.('change', settle);
+  addEventListener('orientationchange', settle);
+  visualViewport?.addEventListener('resize', () => dispatchEvent(new Event('resize')));
+}
 $('pad-pause').onclick = () => {pause(); $('pad-pause').textContent = paused ? '▶' : 'Ⅱ';};
 for (const [id, key] of [['jets-up', 'r'], ['jets-down', 'f']] as const) {
   const b = $(id), up = () => {keys.delete(key); b.classList.remove('active');};
@@ -407,9 +486,9 @@ function input(): {stick: T.Vector3; flight: FlightInput} {
   if (document.body.classList.contains('compact')) {const t = $('touch-throttle'); t.style.setProperty('--level', String(throttle)); t.querySelector('b')!.textContent = `${Math.round(throttle * 100)}%`;}
   const pitchKeys = (k('s') + k('arrowdown') - k('w') - k('arrowup')) * (invertPitch ? -1 : 1);
   const s = new T.Vector3(
-    T.MathUtils.clamp(pitchKeys - stick.y * (invertPitch ? -1 : 1), -1, 1),
+    T.MathUtils.clamp(pitchKeys - (stick.y + joy.y + tilt.y) * (invertPitch ? -1 : 1), -1, 1),
     T.MathUtils.clamp(k('q') - k('e'), -1, 1),
-    T.MathUtils.clamp(k('a') + k('arrowleft') - k('d') - k('arrowright') - stick.x, -1, 1));
+    T.MathUtils.clamp(k('a') + k('arrowleft') - k('d') - k('arrowright') - (stick.x + joy.x + tilt.x), -1, 1));
   // Soft response curve keeps fine corrections gentle.
   s.set(Math.sign(s.x) * Math.abs(s.x) ** 1.5, Math.sign(s.y) * Math.abs(s.y) ** 1.5, Math.sign(s.z) * Math.abs(s.z) ** 1.5);
   return {stick: s, flight: {throttle, torch, hover: k('r') - k('f'), lateral: k('l') - k('j'), surge: k('i') - k('k')}};
