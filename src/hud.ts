@@ -85,36 +85,53 @@ export class Hud {
       }
     }
 
-    // Tapes.
-    const cx = w / 2, cy = h / 2, tapeX = Math.min(260, w < 900 ? w * .15 : w * .2);
+    // Tapes. Phones get a compact strip under the top bar so the centre of the view stays clear.
+    const compact = w < 760 || h < 520, wide = compact && w >= 640, cx = w / 2, cy = h / 2;
+    const headerBottom = compact ? (document.querySelector('header')?.getBoundingClientRect().bottom ?? 50) : 0;
+    const boxW = compact ? 100 : 104, valueFont = compact ? 14 : 17;
+    const tapeX = compact ? w / 2 - 12 : Math.min(260, w < 900 ? w * .15 : w * .2), ty = compact ? headerBottom + 44 : cy;
     const box = (x: number, y: number, label: string, value: string, align: 'left' | 'right') => {
-      c.globalAlpha = .9; c.strokeRect(x - (align === 'right' ? 104 : 0), y - 16, 104, 30);
-      c.textAlign = align; c.font = '600 17px "IBM Plex Mono", ui-monospace, monospace';
+      c.globalAlpha = .9; c.strokeRect(x - (align === 'right' ? boxW : 0), y - 16, boxW, 30);
+      c.textAlign = align; c.font = `600 ${valueFont}px "IBM Plex Mono", ui-monospace, monospace`;
       c.fillText(value, x + (align === 'right' ? -8 : 8), y + 6);
       c.font = '600 10px "IBM Plex Mono", ui-monospace, monospace'; c.fillText(label, x + (align === 'right' ? -8 : 8), y - 22);
       c.textAlign = 'left';
     };
-    const speed = t.agl < 120000 ? t.airspeed : t.airspeed;
-    box(cx - tapeX, cy, t.agl < 120000 ? 'AIRSPEED M/S' : 'VELOCITY KM/S', t.agl < 120000 ? speed.toFixed(0) : (speed / 1000).toFixed(speed > 99999 ? 1 : 3), 'right');
+    const speed = t.airspeed;
+    // On phones the airspeed box sits at the left edge (left-aligned) and altitude at the right edge.
+    const leftX = compact ? 12 : cx - tapeX, rightX = compact ? w - 12 : cx + tapeX;
+    const speedLabel = t.agl < 120000 ? (compact ? 'AIRSPEED' : 'AIRSPEED M/S') : (compact ? 'KM/S' : 'VELOCITY KM/S'), speedValue = t.agl < 120000 ? speed.toFixed(0) : (speed / 1000).toFixed(speed > 99999 ? 1 : 3);
     const aglText = t.agl > 9999999 ? (t.agl / 1e6).toFixed(1) + 'k km' : t.agl > 99999 ? (t.agl / 1000).toFixed(0) + ' km' : t.agl > 9999 ? (t.agl / 1000).toFixed(2) + 'k' : t.agl.toFixed(0);
-    box(cx + tapeX, cy, t.agl > 99999 ? 'ALTITUDE' : 'RADAR ALT M', aglText, 'left');
-    c.font = '600 12px "IBM Plex Mono", ui-monospace, monospace';
-    c.textAlign = 'left'; c.fillText(`VS ${t.verticalSpeed >= 0 ? '+' : ''}${t.verticalSpeed.toFixed(1)}`, cx + tapeX + 8, cy + 36);
-    c.fillText(`GS ${t.groundSpeed.toFixed(0)}`, cx + tapeX + 8, cy + 52);
-    c.textAlign = 'right';
-    c.fillText(t.airspeed < 20 ? "AOA --" : `AOA ${(t.alpha * 180 / Math.PI).toFixed(1)}°`, cx - tapeX - 8, cy + 36);
-    c.fillText(`G ${t.gLoad.toFixed(2)}`, cx - tapeX - 8, cy + 52);
-    c.fillText(`Q ${t.dynamicPressure.toFixed(0)} Pa`, cx - tapeX - 8, cy + 68);
+    if (compact) {box(leftX + boxW, ty, speedLabel, speedValue, 'right'); box(rightX - boxW, ty, t.agl > 99999 ? 'ALTITUDE' : 'RADAR ALT', aglText, 'left');}
+    else {box(leftX, ty, speedLabel, speedValue, 'right'); box(rightX, ty, t.agl > 99999 ? 'ALTITUDE' : 'RADAR ALT M', aglText, 'left');}
+    c.font = `600 ${compact ? 10.5 : 12}px "IBM Plex Mono", ui-monospace, monospace`;
+    const lh = compact ? 14 : 16, sy = ty + (compact ? 30 : 36);
+    if (compact) {
+      c.textAlign = 'right'; c.fillText(`VS ${t.verticalSpeed >= 0 ? '+' : ''}${t.verticalSpeed.toFixed(1)}`, rightX, sy); c.fillText(`GS ${t.groundSpeed.toFixed(0)}`, rightX, sy + lh);
+      c.textAlign = 'left'; c.fillText(t.airspeed < 20 ? 'AOA --' : `AOA ${(t.alpha * 180 / Math.PI).toFixed(1)}°`, leftX, sy); c.fillText(`G ${t.gLoad.toFixed(2)}`, leftX, sy + lh);
+    } else {
+      c.textAlign = 'left'; c.fillText(`VS ${t.verticalSpeed >= 0 ? '+' : ''}${t.verticalSpeed.toFixed(1)}`, cx + tapeX + 8, sy);
+      c.fillText(`GS ${t.groundSpeed.toFixed(0)}`, cx + tapeX + 8, sy + lh);
+      c.textAlign = 'right';
+      c.fillText(t.airspeed < 20 ? 'AOA --' : `AOA ${(t.alpha * 180 / Math.PI).toFixed(1)}°`, cx - tapeX - 8, sy);
+      c.fillText(`G ${t.gLoad.toFixed(2)}`, cx - tapeX - 8, sy + lh);
+      c.fillText(`Q ${t.dynamicPressure.toFixed(0)} Pa`, cx - tapeX - 8, sy + lh * 2);
+    }
     c.textAlign = 'left';
 
     // Status row.
-    const row = h - (w < 900 ? 330 : 150);
-    c.font = '600 11px "IBM Plex Mono", ui-monospace, monospace';
-    const items = [`THR ${Math.round(d.throttle * 100)}%`, `JETS ${Math.round(d.hover * 100)}%`, d.gear ? 'GEAR DN' : 'GEAR UP', d.assist, `HULL ${d.heat.toFixed(0)}%`, `WARP ${d.warp.toFixed(0)}×`, `DRIVE ${d.drive}`, `WIND ${Math.round(d.wind?.total ?? 0)} M/S`];
-    let x = cx - 330;
-    for (const item of items) {c.fillText(item, x, row); x += 95;}
-    // Throttle bar.
-    c.strokeRect(cx - 290, row + 10, 580, 6); c.fillRect(cx - 290, row + 10, 580 * d.throttle, 6);
+    if (compact) {
+      c.font = '600 10px "IBM Plex Mono", ui-monospace, monospace'; c.textAlign = 'center';
+      c.fillText([`JETS ${Math.round(d.hover * 100)}%`, d.gear ? 'GEAR DN' : 'GEAR UP', d.assist, `WARP ${d.warp.toFixed(0)}×`, `HULL ${d.heat.toFixed(0)}%`].join('  ·  '), cx, wide ? ty + 4 : ty + 62);
+      c.textAlign = 'left';
+    } else {
+      const row = h - (w < 900 ? 330 : 150);
+      c.font = '600 11px "IBM Plex Mono", ui-monospace, monospace';
+      const items = [`THR ${Math.round(d.throttle * 100)}%`, `JETS ${Math.round(d.hover * 100)}%`, d.gear ? 'GEAR DN' : 'GEAR UP', d.assist, `HULL ${d.heat.toFixed(0)}%`, `WARP ${d.warp.toFixed(0)}×`, `DRIVE ${d.drive}`, `WIND ${Math.round(d.wind?.total ?? 0)} M/S`];
+      let x = cx - 330;
+      for (const item of items) {c.fillText(item, x, row); x += 95;}
+      c.strokeRect(cx - 290, row + 10, 580, 6); c.fillRect(cx - 290, row + 10, 580 * d.throttle, 6);
+    }
 
     // Prograde / retrograde markers relative to Mars, the ones that matter for orbit changes.
     const vel = new T.Vector3(...d.velocity);
@@ -137,14 +154,15 @@ export class Hud {
     if (o && d.space) {
       c.font = '600 12px "IBM Plex Mono", ui-monospace, monospace'; c.textAlign = 'center';
       const label = {impact: 'IMPACT TRAJECTORY', entry: 'ENTRY CORRIDOR', orbit: 'CAPTURED · IN ORBIT', escape: 'FLYBY · ESCAPE'}[o.status];
-      const top = w < 900 ? 212 : 132;
+      if (compact) c.font = '600 10px "IBM Plex Mono", ui-monospace, monospace';
+      const top = compact ? (wide ? ty + 26 : ty + 84) : w < 900 ? 212 : 132;
       c.fillText(`${label} · e ${o.e.toFixed(3)}`, cx, top);
       const pe = o.approaching || o.e < 1 ? `PERIAPSIS ${o.periapsis.toFixed(0)} KM${Number.isFinite(o.timeToPeriapsis) ? ' IN ' + clock(o.timeToPeriapsis) : ''}` : 'PERIAPSIS PASSED';
       c.fillText(`${pe} · APOAPSIS ${Number.isFinite(o.apoapsis) ? o.apoapsis.toFixed(0) + ' KM' : '∞'}`, cx, top + 18);
       if (o.status === 'escape' && o.approaching) {
         const burn = o.captureDeltaV / d.accel;
         c.fillText(`CAPTURE Δv ${o.captureDeltaV.toFixed(2)} KM/S · ${burn < 120 ? burn.toFixed(0) + ' S' : clock(burn)} AT FULL ${d.drive}`, cx, top + 36);
-        if (o.timeToPeriapsis < Math.max(240, burn * 1.2) && (this.blink % 1) < .7) {c.font = '800 18px "IBM Plex Mono", ui-monospace, monospace'; c.fillStyle = '#ffd28e'; c.fillText('BURN RETROGRADE NOW', cx, top + 62); c.fillStyle = green;}
+        if (o.timeToPeriapsis < Math.max(240, burn * 1.2) && (this.blink % 1) < .7) {c.font = `800 ${compact ? 14 : 18}px "IBM Plex Mono", ui-monospace, monospace`; c.fillStyle = '#ffd28e'; c.fillText('BURN RETROGRADE NOW', cx, top + (compact ? 54 : 62)); c.fillStyle = green;}
       } else if (o.status === 'orbit') c.fillText(`PERIOD ${clock(o.period)} · CIRCULARISE Δv ${o.circulariseDeltaV.toFixed(2)} KM/S`, cx, top + 36);
       else if (o.status === 'entry') c.fillText('ENTRY: B HOLDS BELLY-FIRST ATTITUDE', cx, top + 36);
       c.textAlign = 'left';
@@ -162,8 +180,8 @@ export class Hud {
     if ((d.wind?.devil ?? 0) > 5) warnings.push('DUST DEVIL');
     if ((d.storm ?? 0) > .5 && t.agl < 50000) warnings.push('DUST STORM');
     if (warnings.length && (this.blink % .8) < .55) {
-      c.font = '800 22px "IBM Plex Mono", ui-monospace, monospace'; c.fillStyle = '#ff6b4a'; c.textAlign = 'center';
-      warnings.forEach((wn, i) => c.fillText(wn, cx, cy - 90 - i * 28));
+      c.font = `800 ${compact ? 16 : 22}px "IBM Plex Mono", ui-monospace, monospace`; c.fillStyle = '#ff6b4a'; c.textAlign = 'center';
+      warnings.forEach((wn, i) => c.fillText(wn, cx, cy - (compact ? 70 : 90) - i * (compact ? 22 : 28)));
       c.textAlign = 'left';
     }
     c.shadowBlur = 0;
