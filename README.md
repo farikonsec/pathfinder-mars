@@ -1,8 +1,31 @@
 # PATHFINDER · Mars
 
+<p align="center">
+  <a href="https://farikonsec.github.io/pathfinder-mars/"><img src="docs/media/hero.webp" alt="The PATHFINDER spaceplane in orbit above Olympus Mons" width="100%"></a>
+</p>
+
+<p align="center"><b><a href="https://farikonsec.github.io/pathfinder-mars/">▶ Play in your browser</a></b> · desktop, iPhone and Android · no install</p>
+
+<table>
+  <tr>
+    <td width="33%"><img src="docs/media/entry.webp" alt="Atmospheric entry with a plasma sheath over the Martian limb"><br><sub>Atmospheric entry, belly-first through the plasma</sub></td>
+    <td width="33%"><img src="docs/media/canyon.webp" alt="Low flight through Valles Marineris at sunset"><br><sub>Valles Marineris canyon run at sunset</sub></td>
+    <td width="33%"><img src="docs/media/liftoff.webp" alt="Lift-off from a Jezero Base landing pad kicking up dust"><br><sub>Lift-off from Jezero Base, dust and all</sub></td>
+  </tr>
+  <tr>
+    <td><img src="docs/media/orbit.jpg" alt="The spaceplane in low Mars orbit"><br><sub>Low Mars orbit over measured terrain</sub></td>
+    <td><img src="docs/media/night.jpg" alt="The spaceplane parked on a lit pad at night under the Milky Way"><br><sub>Night at the pad</sub></td>
+    <td><img src="docs/media/mobile-portrait.jpg" alt="Phone layout in portrait with thumb-stick and throttle" width="60%"><br><sub>Phone: thumb-stick, tilt and throttle</sub></td>
+  </tr>
+</table>
+
+<p align="center">
+  <img src="docs/media/desktop.jpg" alt="Desktop flight deck with mission, telemetry and map panels" width="62%">
+  <img src="docs/media/mobile-landscape.jpg" alt="Phone layout in landscape" width="36%">
+</p>
+
 A browser spaceflight game. Arrive at Mars from deep space, capture into orbit, survive atmospheric entry, fly over measured terrain and land a spaceplane at Jezero Base.
 
-**Play:** https://farikonsec.github.io/pathfinder-mars/
 
 It runs entirely in the browser (WebGL, no backend). A desktop browser with a GPU works best.
 
