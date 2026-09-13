@@ -30,4 +30,4 @@ bun run dev
 
 ## Credits
 
-Mars imagery and elevation data are credited in [`public/textures/CREDITS.md`](public/textures/CREDITS.md). The hull lettering uses RAHIMLI STENCIL (`src/rahimli-font.ts`), a stencil typeface drawn for Farhad Rahimli. The music is generated live in the browser.
+Mars imagery and elevation data are credited in [`public/textures/CREDITS.md`](public/textures/CREDITS.md). The hull lettering uses RAHIMLI STENCIL (`src/rahimli-font.ts`), a stencil typeface drawn for Farhad Rahimli. The music, "Red Horizon", is an original 8-bit score synthesised live in the browser.
